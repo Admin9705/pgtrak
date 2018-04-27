@@ -42,8 +42,8 @@ base_config = {
         },
         'movies': {
             'blacklisted_genres': ['documentary', 'music', 'animation'],
-            'blacklisted_min_runtime': 60,
-            'blacklisted_min_year': 2000,
+            'blacklisted_min_runtime': 35,
+            'blacklisted_min_year': 1980,
             'blacklisted_max_year': 2019,
             'blacklist_title_keywords': ['untitled', 'barbie'],
             'blacklisted_tmdb_ids': [],
