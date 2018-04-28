@@ -1,7 +1,7 @@
 # PGTrak
 Script to add new shows & movies to Sonarr/Radarr based on Trakt lists.
 
-# Original Script Author
+#### Original Script Author
 https://github.com/l3uddz/traktarr
 
 # Requirements
