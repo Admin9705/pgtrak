@@ -1,4 +1,4 @@
-# Traktarr
+# PGTrak
 Script to add new shows & movies to Sonarr/Radarr based on Trakt lists.
 
 # Requirements
