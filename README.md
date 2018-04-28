@@ -1,6 +1,9 @@
 # PGTrak
 Script to add new shows & movies to Sonarr/Radarr based on Trakt lists.
 
+# Original Script Author
+https://github.com/l3uddz/traktarr
+
 # Requirements
 1. Python 3.5 or higher (`sudo apt install python3 python3-pip`).
 2. requirements.txt modules (see below).
