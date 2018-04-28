@@ -1,56 +1,33 @@
 #!/usr/bin/env python3
-import os.path
-import sys
 import time
 
 import click
 import schedule
 
+from media.radarr import Radarr
+from media.sonarr import Sonarr
+from media.trakt import Trakt
+from misc import helpers
+from misc.config import cfg
+from misc.log import logger
+from notifications import Notifications
+
 ############################################################
 # INIT
 ############################################################
-cfg = None
-log = None
-notify = None
+
+# Logging
+log = logger.get_logger('traktarr')
+
+# Notifications
+notify = Notifications()
 
 
 # Click
 @click.group(help='Add new shows & movies to Sonarr/Radarr from Trakt lists.')
-@click.version_option('1.1.3', prog_name='traktarr')
-@click.option(
-    '--config',
-    envvar='TRAKTARR_CONFIG',
-    type=click.Path(file_okay=True, dir_okay=False),
-    help='Configuration file',
-    show_default=True,
-    default=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "config.json")
-)
-@click.option(
-    '--logfile',
-    envvar='TRAKTARR_LOGFILE',
-    type=click.Path(file_okay=True, dir_okay=False),
-    help='Log file',
-    show_default=True,
-    default=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "activity.log")
-)
-def app(config, logfile):
-    # Setup global variables
-    global cfg, log, notify
-
-    # Load config
-    from misc.config import Config
-    cfg = Config(config_path=config, logfile=logfile).cfg
-
-    # Load logger
-    from misc.log import logger
-    log = logger.get_logger('traktarr')
-
-    # Load notifications
-    from notifications import Notifications
-    notify = Notifications()
-
-    # Notifications
-    init_notifications()
+@click.version_option('1.1.1', prog_name='traktarr')
+def app():
+    pass
 
 
 ############################################################
@@ -63,23 +40,10 @@ def app(config, logfile):
 @click.option('--add-limit', '-l', default=0, help='Limit number of shows added to Sonarr.', show_default=True)
 @click.option('--add-delay', '-d', default=2.5, help='Seconds between each add request to Sonarr.', show_default=True)
 @click.option('--genre', '-g', default=None, help='Only add shows from this genre to Sonarr.')
-@click.option('--folder', '-f', default=None, help='Add shows with this root folder to Sonarr.')
 @click.option('--no-search', is_flag=True, help='Disable search when adding shows to Sonarr.')
 @click.option('--notifications', is_flag=True, help='Send notifications.')
-def shows(list_type, add_limit=0, add_delay=2.5, genre=None, folder=None, no_search=False, notifications=False):
-    from media.sonarr import Sonarr
-    from media.trakt import Trakt
-    from misc import helpers
-
+def shows(list_type, add_limit=0, add_delay=2.5, genre=None, no_search=False, notifications=False):
     added_shows = 0
-
-    # remove genre from shows blacklisted_genres if supplied
-    if genre and genre in cfg.filters.shows.blacklisted_genres:
-        cfg['filters']['shows']['blacklisted_genres'].remove(genre)
-
-    # replace sonarr root_folder if folder is supplied
-    if folder:
-        cfg['sonarr']['root_folder'] = folder
 
     # validate trakt api_key
     trakt = Trakt(cfg.trakt.api_key)
@@ -237,23 +201,10 @@ def shows(list_type, add_limit=0, add_delay=2.5, genre=None, folder=None, no_sea
 @click.option('--add-limit', '-l', default=0, help='Limit number of movies added to Radarr.', show_default=True)
 @click.option('--add-delay', '-d', default=2.5, help='Seconds between each add request to Radarr.', show_default=True)
 @click.option('--genre', '-g', default=None, help='Only add movies from this genre to Radarr.')
-@click.option('--folder', '-f', default=None, help='Add movies with this root folder to Radarr.')
 @click.option('--no-search', is_flag=True, help='Disable search when adding movies to Radarr.')
 @click.option('--notifications', is_flag=True, help='Send notifications.')
-def movies(list_type, add_limit=0, add_delay=2.5, genre=None, folder=None, no_search=False, notifications=False):
-    from media.radarr import Radarr
-    from media.trakt import Trakt
-    from misc import helpers
-
+def movies(list_type, add_limit=0, add_delay=2.5, genre=None, no_search=False, notifications=False):
     added_movies = 0
-
-    # remove genre from movies blacklisted_genres if supplied
-    if genre and genre in cfg.filters.movies.blacklisted_genres:
-        cfg['filters']['movies']['blacklisted_genres'].remove(genre)
-
-    # replace radarr root_folder if folder is supplied
-    if folder:
-        cfg['radarr']['root_folder'] = folder
 
     # validate trakt api_key
     trakt = Trakt(cfg.trakt.api_key)
@@ -491,38 +442,19 @@ def automatic_movies(add_delay=2.5, no_search=False, notifications=False):
 @click.option('--no-search', is_flag=True, help='Disable search when adding to Sonarr / Radarr.')
 @click.option('--no-notifications', is_flag=True, help="Disable notifications.")
 def run(add_delay=2.5, no_search=False, no_notifications=False):
+    # add tasks to repeat
+    schedule.every(cfg.automatic.movies.interval).hours.do(automatic_movies, add_delay, no_search,
+                                                           not no_notifications)
+    schedule.every(cfg.automatic.shows.interval).hours.do(automatic_shows, add_delay, no_search, not no_notifications)
+
+    # run schedule
     log.info("Automatic mode is now running...")
-
-    # Add tasks to schedule and do first run
-    if cfg.automatic.movies.interval:
-        schedule.every(cfg.automatic.movies.interval).hours.do(
-            automatic_movies,
-            add_delay,
-            no_search,
-            not no_notifications
-        ).run()
-        # Sleep between tasks
-        time.sleep(add_delay)
-
-    if cfg.automatic.shows.interval:
-        schedule.every(cfg.automatic.shows.interval).hours.do(
-            automatic_shows,
-            add_delay,
-            no_search,
-            not no_notifications
-        ).run()
-
-    # Enter running schedule
     while True:
         try:
-            # Sleep until next run
-            log.info("Next job at %s", schedule.next_run())
-            time.sleep(schedule.idle_seconds() or 0)
-            # Check jobs to run
             schedule.run_pending()
-
-        except Exception as e:
-            log.exception("Unhandled exception occurred while processing scheduled tasks: %s", e)
+        except Exception:
+            log.exception("Unhandled exception occurred while processing scheduled tasks: ")
+        else:
             time.sleep(1)
 
 
@@ -547,4 +479,5 @@ def init_notifications():
 ############################################################
 
 if __name__ == "__main__":
+    init_notifications()
     app()
