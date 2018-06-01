@@ -29,11 +29,14 @@ __pycache__/
 # Pyenv
 **/.python-version
 
-# Venv
-venv/
-
 # PyInstaller
 build/
 dist/
 *.manifest
 *.spec
+
+# Git
+.git
+
+# Systemd
+systemd
