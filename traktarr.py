@@ -739,20 +739,9 @@ def exit_handler(signum, frame):
 
 if __name__ == "__main__":
     print("""
-  ,--.                 ,--.     ,--.
-,-'  '-.,--.--. ,--,--.|  |,-.,-'  '-. ,--,--.,--.--.,--.--.
-'-.  .-'|  .--'' ,-.  ||     /'-.  .-'' ,-.  ||  .--'|  .--'
-  |  |  |  |   \ '-'  ||  \  \  |  |  \ '-'  ||  |   |  |
-  `--'  `--'    `--`--'`--'`--' `--'   `--`--'`--'   `--'
 
-#########################################################################
-# Author:   l3uddz                                                      #
-# URL:      https://github.com/l3uddz/traktarr                          #
-# --                                                                    #
-# Part of the Cloudbox project: https://cloudbox.rocks                  #
-#########################################################################
-# GNU General Public License v3.0                                       #
-#########################################################################
+PGTrak Version 5.083
+Original Script Author: https://github.com/l3uddz
 """)
 
     # Register the signal handlers
