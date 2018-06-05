@@ -740,7 +740,8 @@ def exit_handler(signum, frame):
 if __name__ == "__main__":
     print("""
 
-PGTrak Version 5.084
+Version 3
+Visit https://plexguide.com/wikis/pg-trak/ for Info & Credits
 """)
 
     # Register the signal handlers
