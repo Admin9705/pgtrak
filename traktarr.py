@@ -19,7 +19,7 @@ notify = None
 
 # Click
 @click.group(help='Add new shows & movies to Sonarr/Radarr from Trakt.')
-@click.version_option('1.2.3', prog_name='traktarr')
+@click.version_option('1.2.3', prog_name='pgtrak')
 @click.option(
     '--config',
     envvar='TRAKTARR_CONFIG',
@@ -884,7 +884,7 @@ if __name__ == "__main__":
     print("")
 
     f = Figlet(font='graffiti')
-    print(f.renderText('traktarr'))
+    print(f.renderText('pgtrak'))
     # Register the signal handlers
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
