@@ -885,18 +885,6 @@ if __name__ == "__main__":
 
     f = Figlet(font='graffiti')
     print(f.renderText('traktarr'))
-
-    print("""
-#########################################################################
-# Author:   l3uddz                                                      #
-# URL:      https://github.com/l3uddz/traktarr                          #
-# --                                                                    #
-# Part of the Cloudbox project: https://cloudbox.rocks                  #
-#########################################################################
-# GNU General Public License v3.0                                       #
-#########################################################################
-""")
-
     # Register the signal handlers
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
